@@ -42,7 +42,7 @@ fn ls_one_dir(path : &Path) -> io::Result<()> {
     let mut filenames = path.read_dir()?
                        .filter_map(|v| v.ok())
                        .filter(|e| match e.file_type() {
-                           Ok(ft) => ft.is_file(),
+                           Ok(ft) => (ft.is_file() | ft.is_symlink()),
                            _ => false
                        })
                        .map(|e| e.file_name().to_string_lossy().into_owned())
