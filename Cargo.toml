@@ -1,0 +1,8 @@
+[package]
+name = "deskent"
+version = "0.1.0"
+authors = ["Thomas Kluyver <thomas@kluyver.me.uk>"]
+
+[dependencies]
+clap = "~2.31"
+xdg = "^2.1"
