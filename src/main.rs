@@ -1,5 +1,4 @@
 extern crate clap;
-extern crate xdg;
 
 use clap::{App, SubCommand};
 use std::env;

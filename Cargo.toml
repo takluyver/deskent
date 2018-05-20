@@ -5,4 +5,3 @@ authors = ["Thomas Kluyver <thomas@kluyver.me.uk>"]
 
 [dependencies]
 clap = "~2.31"
-xdg = "^2.1"
