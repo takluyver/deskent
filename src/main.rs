@@ -1,6 +1,8 @@
 extern crate clap;
+extern crate ini;
 
-use clap::{App, SubCommand};
+use clap::{App, Arg, SubCommand};
+use ini::Ini;
 use std::env;
 use std::io;
 use std::path::{Path, PathBuf};
@@ -71,6 +73,32 @@ fn ls() -> io::Result<()> {
     Ok(())
 }
 
+fn find(needle: &str) -> io::Result<()> {
+    fn err_other(s: &str) -> io::Error {
+        io::Error::new(io::ErrorKind::Other, s)
+    }
+
+    for appsdir in find_application_dirs()? {
+        for dtfile in get_dir_desktop_files(&appsdir)? {
+            let info = Ini::load_from_file(dtfile.path())
+                       .map_err(|e| err_other(&e.to_string()))?;
+            let sec = match info.section(Some("Desktop Entry")) {
+                Some(s) => s,
+                None => {return Err(err_other("No [Desktop Entry] section"));}
+            };
+            let name = match sec.get("Name") {
+                Some(p) => p,
+                None => {return Err(err_other("No Name key"));}
+            };
+            if name.to_lowercase().contains(needle) {
+                println!("{}", dtfile.path().to_string_lossy());
+                println!("  Name = {}", name);
+            }
+        }
+    }
+    Ok(())
+}
+
 fn main() {
     let version = env!("CARGO_PKG_VERSION");
     let matches = App::new("Deskent")
@@ -80,9 +108,17 @@ fn main() {
                     .subcommand(SubCommand::with_name("ls")
                                 .about("List installed .desktop files.")
                                )
+                    .subcommand(SubCommand::with_name("find")
+                                .about("Find a desktop file by application name")
+                                .arg(Arg::with_name("pattern")
+                                     .help("The name to search for")
+                                     .required(true)
+                                )
+                               )
                     .get_matches();
-    
-    if matches.is_present("ls") {
+    if let Some(matches) = matches.subcommand_matches("find") {
+        find(matches.value_of("pattern").unwrap()).unwrap();
+    } else if matches.is_present("ls") {
         ls().unwrap();
     }
 }

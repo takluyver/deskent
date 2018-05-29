@@ -5,3 +5,4 @@ authors = ["Thomas Kluyver <thomas@kluyver.me.uk>"]
 
 [dependencies]
 clap = "~2.31"
+rust-ini = "0.12.0"
