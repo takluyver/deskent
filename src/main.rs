@@ -33,21 +33,26 @@ fn find_application_dirs() -> io::Result<Vec<PathBuf>> {
     Ok(res)
 }
 
+fn get_dir_desktop_files(path: &Path) -> io::Result<Vec<std::fs::DirEntry>> {
+    return Ok(path.read_dir()?
+             .filter_map(|v| v.ok())
+             .filter(|e| match e.file_type() {
+                 Ok(ft) => (ft.is_file() | ft.is_symlink()),
+                 _ => false
+              })
+             .filter(|e| e.file_name().to_string_lossy().ends_with(".desktop"))
+             .collect::<Vec<_>>());
+}
+
 fn ls_one_dir(path : &Path) -> io::Result<()> {
     println!("{}", path.to_string_lossy());
     if !path.is_dir() {
         println!("  (Not a directory)");
         return Ok(())
     }
-    let mut filenames = path.read_dir()?
-                       .filter_map(|v| v.ok())
-                       .filter(|e| match e.file_type() {
-                           Ok(ft) => (ft.is_file() | ft.is_symlink()),
-                           _ => false
-                       })
-                       .map(|e| e.file_name().to_string_lossy().into_owned())
-                       .filter(|f| f.ends_with(".desktop"))
-                       .collect::<Vec<_>>();
+    let mut filenames = get_dir_desktop_files(&path)?.iter()
+                        .map(|e| e.file_name().to_string_lossy().into_owned())
+                        .collect::<Vec<_>>();
     if filenames.is_empty() {
         println!("  (No .desktop files found)");
         return Ok(())
