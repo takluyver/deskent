@@ -1,15 +1,17 @@
 Linux desktops use desktop entry files to find and launch graphical applications.
 The launcher or menu is populated with names and icons from these files.
 
-`deskent` is a command line tool to find and inspect these files.
+`deskent` is a command line tool to find and inspect desktop entry files.
 
-Installation:
+## Installation
 
 ```
 cargo install deskent
 ```
 
-Usage:
+`cargo` is Rust's package manager - see https://www.rust-lang.org/
+
+## Usage
 
 ```shell
 # List all desktop entry files
