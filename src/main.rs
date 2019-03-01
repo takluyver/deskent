@@ -1,4 +1,5 @@
 extern crate clap;
+extern crate dirs;
 extern crate ini;
 
 use clap::{App, Arg, SubCommand};
@@ -13,7 +14,7 @@ fn find_application_dirs() -> io::Result<Vec<PathBuf>> {
             PathBuf::from(val)
         },
         None => {
-            let home = env::home_dir().ok_or(io::Error::new(io::ErrorKind::Other, "Couldn't get home dir"))?;
+            let home = dirs::home_dir().ok_or(io::Error::new(io::ErrorKind::Other, "Couldn't get home dir"))?;
             home.join(".local/share")
         }
     };
