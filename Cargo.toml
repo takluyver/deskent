@@ -6,6 +6,7 @@ repository = "https://github.com/takluyver/deskent"
 license = "MIT"
 description = "Find and inspect desktop entry files"
 readme = "README.md"
+keywords = ["desktop-entry", "xdg"]
 categories = ["command-line-utilities"]
 
 [dependencies]
