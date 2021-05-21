@@ -2,10 +2,9 @@ extern crate clap;
 extern crate dirs;
 extern crate ini;
 
-use clap::{App, Arg, SubCommand};
+use clap::{App, AppSettings, Arg, SubCommand};
 use ini::Ini;
 use std::env;
-use std::error::Error;
 use std::io;
 use std::path::{Path, PathBuf};
 
@@ -121,27 +120,31 @@ fn find(needle: &str) -> io::Result<()> {
     Ok(())
 }
 
-fn main() -> Result<(), Box<dyn Error>> {
+fn main() -> io::Result<()> {
     let version = env!("CARGO_PKG_VERSION");
     let matches = App::new("Deskent")
-                    .version(version)
-                    .author("Thomas Kluyver")
-                    .about("Inspect desktop entry (.desktop) files.")
-                    .subcommand(SubCommand::with_name("ls")
-                                .about("List installed .desktop files.")
-                               )
-                    .subcommand(SubCommand::with_name("find")
-                                .about("Find a desktop file by application name")
-                                .arg(Arg::with_name("pattern")
-                                     .help("The name to search for")
-                                     .required(true)
-                                )
-                               )
-                    .get_matches();
-    if let Some(matches) = matches.subcommand_matches("find") {
-        find(matches.value_of("pattern").unwrap())?;
-    } else if matches.is_present("ls") {
-        ls()?;
-    };
-    Ok(())
+        .version(version)
+        .author("Thomas Kluyver")
+        .about("Inspect desktop entry (.desktop) files.")
+        .setting(AppSettings::SubcommandRequiredElseHelp)
+        .subcommand(
+            SubCommand::with_name("ls")
+            .about("List installed .desktop files.")
+        )
+        .subcommand(
+            SubCommand::with_name("find")
+            .about("Find a desktop file by application name")
+            .arg(Arg::with_name("pattern")
+                .help("The name to search for")
+                .required(true)
+            )
+        )
+        .get_matches();
+    match matches.subcommand() {
+        ("find", Some(matches)) => find(matches.value_of("pattern").unwrap()),
+        ("ls", _) => ls(),
+        _ => {
+            unreachable!();
+        }
+    }
 }
