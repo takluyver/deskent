@@ -8,6 +8,6 @@ description = "Find and inspect desktop entry files"
 readme = "README.md"
 
 [dependencies]
-clap = "~2.31"
+clap = "~2.33"
 rust-ini = "0.12.0"
 dirs = "1.0"

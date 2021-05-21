@@ -5,6 +5,7 @@ extern crate ini;
 use clap::{App, Arg, SubCommand};
 use ini::Ini;
 use std::env;
+use std::error::Error;
 use std::io;
 use std::path::{Path, PathBuf};
 
@@ -37,14 +38,27 @@ fn find_application_dirs() -> io::Result<Vec<PathBuf>> {
 }
 
 fn get_dir_desktop_files(path: &Path) -> io::Result<Vec<std::fs::DirEntry>> {
-    return Ok(path.read_dir()?
-             .filter_map(|v| v.ok())
-             .filter(|e| match e.file_type() {
-                 Ok(ft) => (ft.is_file() | ft.is_symlink()),
-                 _ => false
-              })
-             .filter(|e| e.file_name().to_string_lossy().ends_with(".desktop"))
-             .collect::<Vec<_>>());
+    match path.read_dir() {
+        Ok(readdir) => {
+            Ok(
+                readdir
+                .filter_map(|v| v.ok())
+                .filter(|e| match e.file_type() {
+                  Ok(ft) => (ft.is_file() | ft.is_symlink()),
+                  _ => false
+                })
+                .filter(|e| e.file_name().to_string_lossy().ends_with(".desktop"))
+                .collect::<Vec<_>>()
+            )
+        }
+        Err(e) => {
+            if e.kind() == io::ErrorKind::NotFound {
+                Ok(Vec::new())
+            } else {
+                Err(e)
+            }
+        }
+    }
 }
 
 fn ls_one_dir(path : &Path) -> io::Result<()> {
@@ -80,7 +94,14 @@ fn find(needle: &str) -> io::Result<()> {
     }
 
     for appsdir in find_application_dirs()? {
-        for dtfile in get_dir_desktop_files(&appsdir)? {
+        let files = match get_dir_desktop_files(&appsdir) {
+            Ok(v) => v,
+            Err(e) => {
+                println!("Could not list {}: {}", &appsdir.to_string_lossy(), e);
+                continue;
+            }
+        };
+        for dtfile in files {
             let info = Ini::load_from_file(dtfile.path())
                        .map_err(|e| err_other(&e.to_string()))?;
             let sec = match info.section(Some("Desktop Entry")) {
@@ -100,7 +121,7 @@ fn find(needle: &str) -> io::Result<()> {
     Ok(())
 }
 
-fn main() {
+fn main() -> Result<(), Box<dyn Error>> {
     let version = env!("CARGO_PKG_VERSION");
     let matches = App::new("Deskent")
                     .version(version)
@@ -118,8 +139,9 @@ fn main() {
                                )
                     .get_matches();
     if let Some(matches) = matches.subcommand_matches("find") {
-        find(matches.value_of("pattern").unwrap()).unwrap();
+        find(matches.value_of("pattern").unwrap())?;
     } else if matches.is_present("ls") {
-        ls().unwrap();
-    }
+        ls()?;
+    };
+    Ok(())
 }
