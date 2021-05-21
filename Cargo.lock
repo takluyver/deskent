@@ -141,7 +141,7 @@ checksum = "8ff012e225ce166d4422e0e78419d901719760f62ae2b7969ca6b564d1b54a9e"
 
 [[package]]
 name = "deskent"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "clap",
  "dirs",
