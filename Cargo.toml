@@ -9,5 +9,5 @@ readme = "README.md"
 
 [dependencies]
 clap = "~2.33"
-rust-ini = "0.12.0"
+rust-ini = "0.17.0"
 dirs = "1.0"

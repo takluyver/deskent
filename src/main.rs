@@ -101,8 +101,9 @@ fn find(needle: &str) -> io::Result<()> {
             }
         };
         for dtfile in files {
-            let info = Ini::load_from_file(dtfile.path())
-                       .map_err(|e| err_other(&e.to_string()))?;
+            let info = Ini::load_from_file_opt(
+                dtfile.path(), ini::ParseOption{enabled_quote: false, enabled_escape: false}
+            ).map_err(|e| err_other(&e.to_string()))?;
             let sec = match info.section(Some("Desktop Entry")) {
                 Some(s) => s,
                 None => {return Err(err_other("No [Desktop Entry] section"));}
