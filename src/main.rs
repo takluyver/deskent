@@ -114,6 +114,7 @@ fn find(needle: &str) -> io::Result<()> {
             if name.to_lowercase().contains(needle) {
                 println!("{}", dtfile.path().to_string_lossy());
                 println!("  Name = {}", name);
+                println!("  Exec = {}", sec.get("Exec").unwrap_or("<missing>"));
             }
         }
     }
