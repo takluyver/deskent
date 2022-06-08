@@ -1,6 +1,6 @@
 [package]
 name = "deskent"
-version = "0.2.0"
+version = "0.3.0"
 authors = ["Thomas Kluyver <thomas@kluyver.me.uk>"]
 repository = "https://github.com/takluyver/deskent"
 license = "MIT"
