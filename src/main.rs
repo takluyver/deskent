@@ -10,21 +10,22 @@ use std::path::{Path, PathBuf};
 
 fn find_application_dirs() -> io::Result<Vec<PathBuf>> {
     let data_home = match env::var_os("XDG_DATA_HOME") {
-        Some(val) => {
-            PathBuf::from(val)
-        },
+        Some(val) => PathBuf::from(val),
         None => {
-            let home = dirs::home_dir().ok_or(io::Error::new(io::ErrorKind::Other, "Couldn't get home dir"))?;
+            let home = dirs::home_dir().ok_or(io::Error::new(
+                io::ErrorKind::Other,
+                "Couldn't get home dir",
+            ))?;
             home.join(".local/share")
         }
     };
     let extra_data_dirs = match env::var_os("XDG_DATA_DIRS") {
-        Some(val) => {
-            env::split_paths(&val).map(PathBuf::from).collect()
-        },
+        Some(val) => env::split_paths(&val).map(PathBuf::from).collect(),
         None => {
-            vec![PathBuf::from("/usr/local/share"),
-                 PathBuf::from("/usr/share")]
+            vec![
+                PathBuf::from("/usr/local/share"),
+                PathBuf::from("/usr/share"),
+            ]
         }
     };
 
@@ -38,18 +39,14 @@ fn find_application_dirs() -> io::Result<Vec<PathBuf>> {
 
 fn get_dir_desktop_files(path: &Path) -> io::Result<Vec<std::fs::DirEntry>> {
     match path.read_dir() {
-        Ok(readdir) => {
-            Ok(
-                readdir
-                .filter_map(|v| v.ok())
-                .filter(|e| match e.file_type() {
-                  Ok(ft) => ft.is_file() | ft.is_symlink(),
-                  _ => false
-                })
-                .filter(|e| e.file_name().to_string_lossy().ends_with(".desktop"))
-                .collect::<Vec<_>>()
-            )
-        }
+        Ok(readdir) => Ok(readdir
+            .filter_map(|v| v.ok())
+            .filter(|e| match e.file_type() {
+                Ok(ft) => ft.is_file() | ft.is_symlink(),
+                _ => false,
+            })
+            .filter(|e| e.file_name().to_string_lossy().ends_with(".desktop"))
+            .collect::<Vec<_>>()),
         Err(e) => {
             if e.kind() == io::ErrorKind::NotFound {
                 Ok(Vec::new())
@@ -60,18 +57,19 @@ fn get_dir_desktop_files(path: &Path) -> io::Result<Vec<std::fs::DirEntry>> {
     }
 }
 
-fn ls_one_dir(path : &Path) -> io::Result<()> {
+fn ls_one_dir(path: &Path) -> io::Result<()> {
     println!("{}", path.to_string_lossy());
     if !path.is_dir() {
         println!("  (Not a directory)");
-        return Ok(())
+        return Ok(());
     }
-    let mut filenames = get_dir_desktop_files(&path)?.iter()
-                        .map(|e| e.file_name().to_string_lossy().into_owned())
-                        .collect::<Vec<_>>();
+    let mut filenames = get_dir_desktop_files(&path)?
+        .iter()
+        .map(|e| e.file_name().to_string_lossy().into_owned())
+        .collect::<Vec<_>>();
     if filenames.is_empty() {
         println!("  (No .desktop files found)");
-        return Ok(())
+        return Ok(());
     }
     filenames.sort_by_key(|f| f.to_lowercase());
     for filename in filenames {
@@ -102,15 +100,24 @@ fn find(needle: &str) -> io::Result<()> {
         };
         for dtfile in files {
             let info = Ini::load_from_file_opt(
-                dtfile.path(), ini::ParseOption{enabled_quote: false, enabled_escape: false}
-            ).map_err(|e| err_other(&e.to_string()))?;
+                dtfile.path(),
+                ini::ParseOption {
+                    enabled_quote: false,
+                    enabled_escape: false,
+                },
+            )
+            .map_err(|e| err_other(&e.to_string()))?;
             let sec = match info.section(Some("Desktop Entry")) {
                 Some(s) => s,
-                None => {return Err(err_other("No [Desktop Entry] section"));}
+                None => {
+                    return Err(err_other("No [Desktop Entry] section"));
+                }
             };
             let name = match sec.get("Name") {
                 Some(p) => p,
-                None => {return Err(err_other("No Name key"));}
+                None => {
+                    return Err(err_other("No Name key"));
+                }
             };
             if name.to_lowercase().contains(needle) {
                 println!("{}", dtfile.path().to_string_lossy());
@@ -129,17 +136,15 @@ fn main() -> io::Result<()> {
         .author("Thomas Kluyver")
         .about("Inspect desktop entry (.desktop) files.")
         .subcommand_required(true)
-        .subcommand(
-            Command::new("ls")
-            .about("List installed .desktop files.")
-        )
+        .subcommand(Command::new("ls").about("List installed .desktop files."))
         .subcommand(
             Command::new("find")
-            .about("Find a desktop file by application name")
-            .arg(Arg::new("pattern")
-                .help("The name to search for")
-                .required(true)
-            )
+                .about("Find a desktop file by application name")
+                .arg(
+                    Arg::new("pattern")
+                        .help("The name to search for")
+                        .required(true),
+                ),
         )
         .get_matches();
     match matches.subcommand() {
