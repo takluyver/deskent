@@ -10,6 +10,6 @@ keywords = ["desktop-entry", "xdg"]
 categories = ["command-line-utilities"]
 
 [dependencies]
-clap = "~2.33"
+clap = "~3.2.25"
 rust-ini = "0.17.0"
 dirs = "1.0"

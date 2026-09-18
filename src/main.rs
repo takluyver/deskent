@@ -43,7 +43,7 @@ fn get_dir_desktop_files(path: &Path) -> io::Result<Vec<std::fs::DirEntry>> {
                 readdir
                 .filter_map(|v| v.ok())
                 .filter(|e| match e.file_type() {
-                  Ok(ft) => (ft.is_file() | ft.is_symlink()),
+                  Ok(ft) => ft.is_file() | ft.is_symlink(),
                   _ => false
                 })
                 .filter(|e| e.file_name().to_string_lossy().ends_with(".desktop"))
@@ -143,8 +143,8 @@ fn main() -> io::Result<()> {
         )
         .get_matches();
     match matches.subcommand() {
-        ("find", Some(matches)) => find(matches.value_of("pattern").unwrap()),
-        ("ls", _) => ls(),
+        Some(("find", matches)) => find(matches.value_of("pattern").unwrap()),
+        Some(("ls", _)) => ls(),
         _ => {
             unreachable!();
         }
