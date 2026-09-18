@@ -2,7 +2,7 @@ extern crate clap;
 extern crate dirs;
 extern crate ini;
 
-use clap::{App, AppSettings, Arg, SubCommand};
+use clap::{Arg, Command};
 use ini::Ini;
 use std::env;
 use std::io;
@@ -124,26 +124,26 @@ fn find(needle: &str) -> io::Result<()> {
 
 fn main() -> io::Result<()> {
     let version = env!("CARGO_PKG_VERSION");
-    let matches = App::new("Deskent")
+    let matches = Command::new("Deskent")
         .version(version)
         .author("Thomas Kluyver")
         .about("Inspect desktop entry (.desktop) files.")
-        .setting(AppSettings::SubcommandRequiredElseHelp)
+        .subcommand_required(true)
         .subcommand(
-            SubCommand::with_name("ls")
+            Command::new("ls")
             .about("List installed .desktop files.")
         )
         .subcommand(
-            SubCommand::with_name("find")
+            Command::new("find")
             .about("Find a desktop file by application name")
-            .arg(Arg::with_name("pattern")
+            .arg(Arg::new("pattern")
                 .help("The name to search for")
                 .required(true)
             )
         )
         .get_matches();
     match matches.subcommand() {
-        Some(("find", matches)) => find(matches.value_of("pattern").unwrap()),
+        Some(("find", matches)) => find(matches.get_one::<String>("pattern").unwrap()),
         Some(("ls", _)) => ls(),
         _ => {
             unreachable!();
